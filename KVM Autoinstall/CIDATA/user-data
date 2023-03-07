@@ -5,9 +5,7 @@ autoinstall:
     install-server: true
     # option "allow-pw" defaults to `true` if authorized_keys is empty, `false` otherwise.
     allow-pw: true
-
-  # Install wpasupplicant just for wifi. Normally server would be hardwired but this is test server
-  # on my desktop
+  # Install wpasupplicant for wifi. Server should be hardwired but this is test server on my desktop.
   packages:
     - wpasupplicant
   # "[late-commands] are run in the installer environment with the installed system mounted at /target."
@@ -20,7 +18,6 @@ autoinstall:
     - curtin in-target --target=/target -- resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
     # Delete auto install netplan config and replace with our network config
     # Interface names are generated as such:
-    # See https://github.com/systemd/systemd/blob/ccddd104fc95e0e769142af6e1fe1edec5be70a6/src/udev/udev-builtin-net_id.c#L29
     # en --> ethernet
     # p0 --> bus number
     # s31 --> slot number
@@ -62,3 +59,4 @@ autoinstall:
     # shutdown after first host initial provisioning
     power_state:
       mode: poweroff
+      message: Please remove all ISOs or USBs and power on machine.
