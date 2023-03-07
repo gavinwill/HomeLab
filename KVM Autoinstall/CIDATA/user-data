@@ -1,0 +1,62 @@
+#cloud-config
+autoinstall:
+  version: 1
+  ssh:
+    install-server: true
+    # option "allow-pw" defaults to `true` if authorized_keys is empty, `false` otherwise.
+    allow-pw: true
+  # Install wpasupplicant for wifi. Server should be hardwired but this is test server on my desktop.
+  packages:
+    - wpasupplicant
+  # "[late-commands] are run in the installer environment with the installed system mounted at /target."
+  late-commands:
+    # randomly generate the hostname & show the IP at boot
+    - echo kvm-host-$(openssl rand -hex 3) > /target/etc/hostname
+    # dump the IP out at login screen
+    - echo "Ubuntu 22.04 LTS" > /target/etc/issue
+    - curtin in-target --target=/target -- lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
+    - curtin in-target --target=/target -- resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
+    # Delete auto install netplan config and replace with our network config
+    # Interface names are generated as such:
+    # en --> ethernet
+    # p0 --> bus number
+    # s31 --> slot number
+    - |
+      rm /target/etc/netplan/00-installer-config.yaml
+      rm /target/etc/netplan/00-installer-config-wifi.yaml
+      cat <<EOF > /target/etc/netplan/kvm.yaml
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          enp0s31f6:
+            dhcp4: true
+            optional: true
+        wifis:
+          wlp2s0:
+            dhcp4: true
+            optional: true
+            access-points:
+              "Mame":
+                password: "redactedpassword"
+      EOF
+    # shut-down the host to avoid an infinite installer loop
+    - shutdown -h now
+
+  user-data:
+    disable_root: false
+    timezone: Europe/London
+    package_upgrade: false
+    users:
+      - name: gavin
+        lock_passwd: false
+        groups: sudo
+        passwd: "$y$j9T$5bTuZPl8oJ5LSZ1voX5421$usvYVQAvGjQ/lbM93ASoqSqY1nE0xfroTNxNDlqKpb4"
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEt3XswOlYG+DT0xDdrptK6ikJ3a5KC+XwjZvg01dmRJ g@gavinwill.me.uk"
+        sudo: ALL=(ALL) NOPASSWD:ALL
+    # shutdown after first host initial provisioning
+    power_state:
+      mode: poweroff
+      message: Please remove all ISOs or USBs and power on machine.
