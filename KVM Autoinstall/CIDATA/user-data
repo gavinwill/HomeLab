@@ -41,7 +41,7 @@ autoinstall:
             optional: true
             access-points:
               "Mame":
-                password: ""
+                password: "redactedpassword"
       EOF
     # shut-down the host to avoid an infinite installer loop
     - shutdown -h now
