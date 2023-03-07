@@ -48,6 +48,13 @@ autoinstall:
     timezone: Europe/London
     package_upgrade: false
     users:
+      - name: ansible
+        lock_passwd: true
+        groups: sudo
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE48DfpSCkkN9E9s6K1o9HOV0QUSrfZi6qnYNSc0223X ansible@gavinwill.me.uk"
+        sudo: ALL=(ALL) NOPASSWD:ALL
       - name: gavin
         lock_passwd: false
         groups: sudo
