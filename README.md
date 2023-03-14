@@ -24,3 +24,6 @@ The requirements I have for my home lab are quite simple:
 - [Unifi UAP-AC-Lite](https://eu.store.ui.com/products/unifi-ac-lite) Wifi Accesspoint
 - UniFi Stand-Alone Cloud Key Controller (Gen 1)
     - Potential to be virtualised in future
+
+### Bare Metal Provisioning
+With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance I decided on using USB memory sticks to provision an Ubuntu 22.04 LTS bare metal machine with cloud-init and autoinstall config. This enables me to get the bare metal machine "online" with a basic configuration for network connectivity and users setup with SSHs keys. At this point configuration and management of the box is passed onto other automation tools.
