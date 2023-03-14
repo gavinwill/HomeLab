@@ -5,7 +5,7 @@ The requirements I have for my home lab are quite simple:
 * Everyting should be made as simple as possible, but not simpler.
 * Low energy and footprint (In all senses of the word).
 * Cheap capital expenditure and operational expenditure.
-* Automate where possible but not to the detriment of simplicity.
+* Automate where possible but not to the detriment of simplicity and maintainability.
 * Manual once off task(s) are potentially acceptable compromises for this situation.
 * Stateless so can easily rebuild and not worry about lost data.
 * KVM, Docker and Kubernetes Support.
