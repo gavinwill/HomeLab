@@ -25,6 +25,10 @@ Given the nature this is just for home internet access, local development and is
     - CPU: `Intel(R) Celeron(R) CPU 3955U @ 2.00GHz`
     - RAM: `16GB`
     - SSD: `240GB`
+- 1 × [Intel Nuc](https://ark.intel.com/content/www/us/en/ark/products/83256/intel-nuc-kit-nuc5i3ryk.html) `NUC5i3RYK` :
+    - CPU: `Intel i3-5010U CPU @ 2.10GHz`
+    - RAM: `8GB`
+    - SSD: `120GB`
 - [Unifi EdgeRouter X](https://store.ui.com/collections/operator-edgemax-routers/products/edgerouter-x) ` switch:
     - Ports: `5`
     - Speed: `1000Mbps`
