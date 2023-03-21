@@ -34,8 +34,6 @@ Given the nature this is just for home internet access, local development and is
     - Speed: `1000Mbps`
     - Routing disabled and running as switch only
 - [Unifi UAP-AC-Lite](https://eu.store.ui.com/products/unifi-ac-lite) Wifi Accesspoint
-- UniFi Stand-Alone Cloud Key Controller (Gen 1)
-    - Potential to be virtualised in future
 
 ### Bare Metal Provisioning
 
