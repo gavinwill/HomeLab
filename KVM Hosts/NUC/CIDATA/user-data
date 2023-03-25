@@ -18,7 +18,7 @@ autoinstall:
   # "[late-commands] are run in the installer environment with the installed system mounted at /target."
   late-commands:
     # randomly generate the hostname & show the IP at boot
-    - echo kvm-host-$(openssl rand -hex 3) > /target/etc/hostname
+    - echo kvm-prod-$(openssl rand -hex 3) > /target/etc/hostname
     # dump the IP out at login screen
     - echo "Ubuntu 22.04 LTS" > /target/etc/issue
     - curtin in-target --target=/target -- lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
@@ -38,7 +38,7 @@ autoinstall:
         renderer: networkd
         
         ethernets:
-          enp0s31f6:
+          enp0s25:
             dhcp4: false
             dhcp6: false
             addresses: []
@@ -46,11 +46,11 @@ autoinstall:
         bridges:
 
           br-default:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
-            interfaces: [ enp0s31f6 ]      
-            addresses: [192.168.160.254/24]
+            interfaces: [ enp0s25 ]      
+            addresses: [192.168.160.250/24]
             nameservers:
               search: [gavinwill.me.uk]
               addresses: [192.168.160.1, 8.8.8.8]
@@ -59,42 +59,42 @@ autoinstall:
                 via: 192.168.160.1
 
           br-v99:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.99 ]
             addresses: []
 
           br-v170:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.170 ]
             addresses: []
 
           br-v180:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.180 ]
             addresses: []
 
           br-v190:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.190 ]
             addresses: []
 
           br-v200:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.200 ]
             addresses: []
 
           br-v210:
-            macaddress: 40:8d:5c:fe:8a:e5
+            macaddress: f4:4d:30:61:1b:90
             dhcp4: false
             dhcp6: false
             interfaces: [ vlan.210 ]
@@ -104,32 +104,32 @@ autoinstall:
             vlan.99:
                 accept-ra: no
                 id: 99
-                link: enp0s31f6
+                link: enp0s25
 
             vlan.170:
                 accept-ra: no
                 id: 170
-                link: enp0s31f6
+                link: enp0s25
 
             vlan.180:
                 accept-ra: no
                 id: 180
-                link: enp0s31f6
+                link: enp0s25
 
             vlan.190:
                 accept-ra: no
                 id: 190
-                link: enp0s31f6
+                link: enp0s25
 
             vlan.200:
                 accept-ra: no
                 id: 200
-                link: enp0s31f6
+                link: enp0s25
 
             vlan.210:
                 accept-ra: no
                 id: 210
-                link: enp0s31f6
+                link: enp0s25
       EOF
     # shut-down the host to avoid an infinite installer loop
     - shutdown -h now

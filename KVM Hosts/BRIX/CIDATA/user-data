@@ -1,0 +1,160 @@
+#cloud-config
+autoinstall:
+  version: 1
+  ssh:
+    install-server: true
+    # option "allow-pw" defaults to `true` if authorized_keys is empty, `false` otherwise.
+    allow-pw: true
+
+  packages:
+    - iftop
+    - iotop
+    - iperf3
+    - mtr
+    - sysstat
+    - tmux
+    - vim
+
+  # "[late-commands] are run in the installer environment with the installed system mounted at /target."
+  late-commands:
+    # randomly generate the hostname & show the IP at boot
+    - echo kvm-dev-$(openssl rand -hex 3) > /target/etc/hostname
+    # dump the IP out at login screen
+    - echo "Ubuntu 22.04 LTS" > /target/etc/issue
+    - curtin in-target --target=/target -- lvextend -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv
+    - curtin in-target --target=/target -- resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
+    # Delete auto install netplan config and replace with our network config with default vlans
+    # and bridges for use with KVM
+    # Interface names are generated as such:
+    # en --> ethernet
+    # p0 --> bus number
+    # s31 --> slot number
+    - |
+      rm /target/etc/netplan/00-installer-config.yaml
+      rm /target/etc/netplan/00-installer-config-wifi.yaml
+      cat <<EOF > /target/etc/netplan/kvm.yaml
+      network:
+        version: 2
+        renderer: networkd
+        
+        ethernets:
+          enp0s31f6:
+            dhcp4: false
+            dhcp6: false
+            addresses: []
+
+        bridges:
+
+          br-default:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ enp0s31f6 ]      
+            addresses: [192.168.160.254/24]
+            nameservers:
+              search: [gavinwill.me.uk]
+              addresses: [192.168.160.1, 8.8.8.8]
+            routes:
+              - to: default
+                via: 192.168.160.1
+
+          br-v99:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.99 ]
+            addresses: []
+
+          br-v170:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.170 ]
+            addresses: []
+
+          br-v180:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.180 ]
+            addresses: []
+
+          br-v190:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.190 ]
+            addresses: []
+
+          br-v200:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.200 ]
+            addresses: []
+
+          br-v210:
+            macaddress: 40:8d:5c:fe:8a:e5
+            dhcp4: false
+            dhcp6: false
+            interfaces: [ vlan.210 ]
+            addresses: []
+
+        vlans:
+            vlan.99:
+                accept-ra: no
+                id: 99
+                link: enp0s31f6
+
+            vlan.170:
+                accept-ra: no
+                id: 170
+                link: enp0s31f6
+
+            vlan.180:
+                accept-ra: no
+                id: 180
+                link: enp0s31f6
+
+            vlan.190:
+                accept-ra: no
+                id: 190
+                link: enp0s31f6
+
+            vlan.200:
+                accept-ra: no
+                id: 200
+                link: enp0s31f6
+
+            vlan.210:
+                accept-ra: no
+                id: 210
+                link: enp0s31f6
+      EOF
+    # shut-down the host to avoid an infinite installer loop
+    - shutdown -h now
+
+  user-data:
+    disable_root: true
+    timezone: Europe/London
+    package_upgrade: false
+    users:
+      - name: ansible
+        lock_passwd: true
+        groups: sudo
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE48DfpSCkkN9E9s6K1o9HOV0QUSrfZi6qnYNSc0223X ansible@gavinwill.me.uk"
+        sudo: ALL=(ALL) NOPASSWD:ALL
+      - name: gavin
+        lock_passwd: false
+        groups: sudo
+        passwd: "$y$j9T$5bTuZPl8oJ5LSZ1voX5421$usvYVQAvGjQ/lbM93ASoqSqY1nE0xfroTNxNDlqKpb4"
+        shell: /bin/bash
+        ssh_authorized_keys:
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEt3XswOlYG+DT0xDdrptK6ikJ3a5KC+XwjZvg01dmRJ g@gavinwill.me.uk"
+        sudo: ALL=(ALL) NOPASSWD:ALL
+    # shutdown after first host initial provisioning
+    power_state:
+      mode: poweroff
+      message: Please remove all ISOs or USBs and power on machine.

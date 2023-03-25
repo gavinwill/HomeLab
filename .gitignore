@@ -1,15 +1,35 @@
-*.egg-info
-*.py[co]
-*.sw[op]
 
-/.coverage
-/.pytest_cache
-/.tox
-/venv*
-/tmp
+# DS Store 
+**/.DS_Store
 
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env_
+
+# Ansible
+ansible/*
+ansible/roles/*
+ansible/roles-*
+
+# Group Vars and Host Vars
+ansible/group_vars/*
+ansible/host_vars/*
+
+# ISOs - Dont upload large isos
+ISO/*.qcow2
+ISO/*.iso
+
+# Misc
 .*ignore
 !.gitignore
 .python-version
 .vscode
-.DS_Store
