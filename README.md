@@ -5,7 +5,7 @@ This repo is used by myself to deploy my home lab / home network. This is mainly
 ## Requirements
 
 - Everything should be made as simple as possible, but not simpler.
-- Low energy and footprint. Aiming for around ~20 watts during normal operation for networking and compute.
+- Low energy and footprint. Aiming for around ~20 watts during normal operation for networking and compute. Development server should be around ~15 watts.
 - Cheap capital expenditure and operational expenditure.
 - Automate where possible but not to the detriment of simplicity and maintainability. See [XKCD: Automation](https://xkcd.com/1319/).
 - Manual once off task(s) are potentially acceptable compromises. See [XKCD: Is It Worth the Time?](https://xkcd.com/1205/)
@@ -46,7 +46,7 @@ Given the nature this is just for home internet access, local development and is
   - SSD: `240GB`
   - Cost: £100 (ebay)
 
-- [Unifi EdgeRouter X](https://store.ui.com/collections/operator-edgemax-routers/products/edgerouter-x) ` switch:
+- [Unifi EdgeRouter X](https://store.ui.com/collections/operator-edgemax-routers/products/edgerouter-x) switch:
 
   - Ports: `5`
   - Speed: `1000Mbps`
