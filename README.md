@@ -106,10 +106,10 @@ I use the excellent stackhpc `ansible-role-libvirt-host` to setup the nuc as a l
 
 I also use [guy geerlings docker role](https://github.com/geerlingguy/ansible-role-docker) to add basic docker support and [cockpit role](https://github.com/linux-system-roles/cockpit).
 
-Cockpit is a web console for administration of the host. I use this in readonly mode as all configuration is in code but it offers an excellent web based console access to KVM Virtual Machines which is incredibly handy.
+Cockpit is a web console for administration of the host. I use this in "read-only mode" as all configuration is in code but it offers an excellent web based console access to KVM Virtual Machines which is incredibly handy.
 
-### Pfsense and Pfsense High Availibility
+### Pfsense and Pfsense High Availability
 
-From my experience Pfsense works well as a host in KVM and it is possible to setup high availibility using CARP. This opens up ability to run a secondary instance on my dev server and should anything happend to the "production" server internet access is still availible. With using PPOE to "dial up" there is a brief outage and failover happens but its very brief (sub ~10 seconds).
+From my experience Pfsense works well as a host in KVM and it is possible to setup high availability using CARP. This opens up ability to run a secondary instance on my dev server and should anything happen to the "production" server or I need to rebuild it then internet access is still availible. With using PPOE to "dial up" there is a brief outage and failover happens but it is very brief (sub ~10 seconds).
 
-It is of vital importance however that the secondary node has the exact same order of interfaces presented to the system otherwise HA replication will fail. Using configuration management makes this consistency easy but wanted to point out this gothca.
+It is of vital importance however that the secondary node has the exact same order of interfaces presented to the system otherwise HA replication will fail. Using configuration management makes this consistency easy but wanted to point out this gotcha.
