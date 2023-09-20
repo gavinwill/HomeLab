@@ -96,3 +96,14 @@ At this point further configuration is passed to ansible. A quick test to confir
 ```
 ansible all -m ping
 ```
+
+### Ansible Configuration
+
+Now that the bare metal servers are "online" I used ansible to configure the hosts. I have used existing roles where possible (why reinvent the wheel) and only use my own roles if there is a specific need.
+
+Firstly I need a KVM Host to run a KVM instance for a virtualised Pfsense for internet connectivity
+I use the excellent stackhpc `ansible-role-libvirt-host` to setup the nuc as a libvirt/kvm hypervisor along with `ansible-role-libvirt-vm` to create the virtual machines (in my case pfsense and homeassistant). For Home Assistant i needed to present a USB device to the VM so created a [pull request to add support](https://github.com/stackhpc/ansible-role-libvirt-vm/pull/95). This has been merged into release 1.16.0 of the role.
+
+I also use [guy geerlings docker role](https://github.com/geerlingguy/ansible-role-docker) to add basic docker support and [cockpit role](https://github.com/linux-system-roles/cockpit).
+
+Cockpit is a web console for administration of the host. I use this in readonly mode as all configuration is in code but it offers an excellent web based console access to KVM Virtual Machines which is incredibly handy.
