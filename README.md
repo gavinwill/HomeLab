@@ -64,15 +64,21 @@ The basics of the install are:
 
 - Create a customised live-server ISO with a modified grub.cfg to allow autoinstall
 
-`sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg`
+```
+sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg
+```
 
 - Reduce the timeout since no one wants to wait 30 seconds for an autoinstall
 
-`sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg`
+```
+sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg
+```
 
 - Rebuild the ISO with [livefs-editor](https://github.com/mwhudson/livefs-editor) to include the customised grub.cfg
 
-`# copy command exactly as is, it appends -modded to the new filename export MODDED_ISO="${ORIG_ISO::-4}-modded.iso" livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg`
+```
+# copy command exactly as is, it appends -modded to the new filename export MODDED_ISO="${ORIG_ISO::-4}-modded.iso" livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg
+```
 
 - Copy to the ISO using dd, etcher or imaging software of choice to a USB stick.
 
@@ -80,7 +86,9 @@ The basics of the install are:
 
 - Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement)
 
-`touch meta-data`
+```
+touch meta-data
+```
 
 - create a file called user-data and populate it with options you require. [The oficial documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
 
@@ -92,4 +100,8 @@ The basics of the install are:
 - After it shuts off, provisioning is complete
 - Boot for the last time
 
-At this point further configuration is passed to ansible.
+At this point further configuration is passed to ansible. A quick test to confirm connectivity is all good.
+
+```
+ansible all -m ping
+```
