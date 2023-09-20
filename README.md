@@ -71,7 +71,7 @@ mount -o loop $ORIG_ISO mnt
 cp --no-preserve=all mnt/boot/grub/grub.cfg /tmp/grub.cfg
 sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg
 sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg
-# export MODDED_ISO="${ORIG_ISO::-4}-modded.iso"
+export MODDED_ISO="${ORIG_ISO::-4}-modded.iso"
 livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg
 ```
 
@@ -81,13 +81,9 @@ livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/gru
 
 - Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement) on the cloud-init USB stick.
 
-```
-touch meta-data
-```
+- create a file called user-data and populate it with options you require and save to the cloud-init USB stick. [The official documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
 
-- create a file called user-data and populate it with options you require. [The oficial documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
-
-- Now its time to install
+Now its time to install onto baremetal
 
 - Boot from the USB (wait for cloud-init to trigger autoinstall)
 - After it shuts off, unplug the USB
