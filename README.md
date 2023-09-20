@@ -10,22 +10,22 @@ This repo is used by myself to deploy my home lab / home network. This is mainly
 - Automate where possible but not to the detriment of simplicity and maintainability. See [XKCD: Automation](https://xkcd.com/1319/).
 - Manual once off task(s) are potentially acceptable compromises. See [XKCD: Is It Worth the Time?](https://xkcd.com/1205/)
 - Stateless so can easily rebuild and not worry about lost data.
-- KVM, Docker and Kubernetes Support in Development environment.
+- KVM, Docker and Kubernetes Support.
+- Where possible or applicable configure HA between the prod and dev node for services.
 
 ## Limitations
 
-- Everything running on a single machine for 'production' services
 - Everything running on a machine with relative low resources for dev and prod.
 
 Given the nature this is just for home internet access, local development and is stateless the limitations are deemed acceptable.
 
-## Production Requirements
+## Production Server Requirements
 
-- Virtualised pfSense Router to supply internet access.
-- Home Assistant VM to provide home automation.
-- Unifi Controller for Unifi Access Points.
+- Virtualised pfSense Router to supply internet access (in HA Pair with CARP).
+- Home Assistant VM to provide basic home automation.
+- Unifi Controller for configuration of Unifi Access Points.
 
-## Development Requirements
+## Development Server Requirements
 
 - Wake on Lan as not powered 24/7.
 - Flexibility
@@ -50,10 +50,46 @@ Given the nature this is just for home internet access, local development and is
 
   - Ports: `5`
   - Speed: `1000Mbps`
-  - Routing disabled and running as switch only
+  - Routing disabled and running as switch with vlans only
 
 - [Unifi UAP-AC-Lite](https://eu.store.ui.com/products/unifi-ac-lite) Wifi Accesspoint
 
 ### Bare Metal Provisioning
 
-With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance, instead of say pxe booting with a dhcp server from my laptop, I decided on using USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity and users setup with SSHs keys. At this point configuration and management of the box is passed onto other automation tools.
+With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance, instead of say pxe booting with a dhcp server from my laptop, I decided on using 2 x USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity along with users setup and configured with SSHs keys.
+
+At this point configuration and management of the box is passed onto other automation tools.
+
+The basics of the install are:
+
+- Create a customised live-server ISO with a modified grub.cfg to allow autoinstall
+
+`sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg`
+
+- Reduce the timeout since no one wants to wait 30 seconds for an autoinstall
+
+`sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg`
+
+- Rebuild the ISO with [livefs-editor](https://github.com/mwhudson/livefs-editor) to include the customised grub.cfg
+
+`# copy command exactly as is, it appends -modded to the new filename export MODDED_ISO="${ORIG_ISO::-4}-modded.iso" livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg`
+
+- Copy to the ISO using dd, etcher or imaging software of choice to a USB stick.
+
+- Format a second USB stick as FAT32 and label the volume CIDATA. This is used for cloud-init config
+
+- Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement)
+
+`touch meta-data`
+
+- create a file called user-data and populate it with options you require. [The oficial documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
+
+- Now its time to install
+
+- Boot from the USB (wait for cloud-init to trigger autoinstall)
+- After it shuts off, unplug the USB
+- Boot again (wait for the second cloud-init to trigger host first-run provisioning)
+- After it shuts off, provisioning is complete
+- Boot for the last time
+
+At this point further configuration is passed to ansible.
