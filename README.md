@@ -81,7 +81,7 @@ livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/gru
 
 - Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement) on the cloud-init USB stick.
 
-- create a file called user-data and populate it with options you require and save to the cloud-init USB stick. [The official documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
+- Create a file called user-data and populate it with options you require and save to the cloud-init USB stick. [The official documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
 
 Now its time to install onto baremetal
 
