@@ -10,22 +10,22 @@ This repo is used by myself to deploy my home lab / home network. This is mainly
 - Automate where possible but not to the detriment of simplicity and maintainability. See [XKCD: Automation](https://xkcd.com/1319/).
 - Manual once off task(s) are potentially acceptable compromises. See [XKCD: Is It Worth the Time?](https://xkcd.com/1205/)
 - Stateless so can easily rebuild and not worry about lost data.
-- KVM, Docker and Kubernetes Support in Development environment.
+- KVM, Docker and Kubernetes Support.
+- Where possible or applicable configure HA between the prod and dev node for services.
 
 ## Limitations
 
-- Everything running on a single machine for 'production' services
 - Everything running on a machine with relative low resources for dev and prod.
 
 Given the nature this is just for home internet access, local development and is stateless the limitations are deemed acceptable.
 
-## Production Requirements
+## Production Server Requirements
 
-- Virtualised pfSense Router to supply internet access.
-- Home Assistant VM to provide home automation.
-- Unifi Controller for Unifi Access Points.
+- Virtualised pfSense Router to supply internet access (in HA Pair with CARP).
+- Home Assistant VM to provide basic home automation.
+- Unifi Controller for configuration of Unifi Access Points.
 
-## Development Requirements
+## Development Server Requirements
 
 - Wake on Lan as not powered 24/7.
 - Flexibility
@@ -50,10 +50,66 @@ Given the nature this is just for home internet access, local development and is
 
   - Ports: `5`
   - Speed: `1000Mbps`
-  - Routing disabled and running as switch only
+  - Routing disabled and running as switch with vlans only
 
 - [Unifi UAP-AC-Lite](https://eu.store.ui.com/products/unifi-ac-lite) Wifi Accesspoint
 
 ### Bare Metal Provisioning
 
-With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance, instead of say pxe booting with a dhcp server from my laptop, I decided on using USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity and users setup with SSHs keys. At this point configuration and management of the box is passed onto other automation tools.
+With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance I decided on using 2 x USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity along with users setup and configured with SSHs keys.
+
+The basics of the install are:
+
+- Create a customised live-server ISO with a modified grub.cfg to allow autoinstall
+
+- Rebuild the ISO with [livefs-editor](https://github.com/mwhudson/livefs-editor) to include the customised grub.cfg
+
+```
+wget "https://releases.ubuntu.com/22.04/ubuntu-22.04.1-live-server-amd64.iso"
+export ORIG_ISO="ubuntu-22.04.1-live-server-amd64.iso"
+mount -o loop $ORIG_ISO mnt
+cp --no-preserve=all mnt/boot/grub/grub.cfg /tmp/grub.cfg
+sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg
+sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg
+export MODDED_ISO="${ORIG_ISO::-4}-modded.iso"
+livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg
+```
+
+- Copy to the ISO using dd, etcher or imaging software of choice to a USB stick.
+
+- Format a second USB stick as FAT32 and label the volume CIDATA. This is used for cloud-init config
+
+- Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement) on the cloud-init USB stick.
+
+- Create a file called user-data and populate it with options you require and save to the cloud-init USB stick. [The official documentation has a few examples that can be used as reference.](https://ubuntu.com/server/docs/install/autoinstall)
+
+Now its time to install onto baremetal
+
+- Boot from the USB (wait for cloud-init to trigger autoinstall)
+- After it shuts off, unplug the USB
+- Boot again (wait for the second cloud-init to trigger host first-run provisioning)
+- After it shuts off, provisioning is complete
+- Boot for the last time
+
+At this point further configuration is passed to ansible. A quick test to confirm connectivity is all good.
+
+```
+ansible all -m ping
+```
+
+### Ansible Configuration
+
+Now that the bare metal servers are "online" I used ansible to configure the hosts. I have used existing roles where possible (why reinvent the wheel) and only use my own roles if there is a specific need.
+
+Firstly I need a KVM Host to run a KVM instance for a virtualised Pfsense for internet connectivity
+I use the excellent stackhpc `ansible-role-libvirt-host` to setup the nuc as a libvirt/kvm hypervisor along with `ansible-role-libvirt-vm` to create the virtual machines (in my case pfsense and homeassistant). For Home Assistant i needed to present a USB device to the VM so created a [pull request to add support](https://github.com/stackhpc/ansible-role-libvirt-vm/pull/95). This has been merged into release 1.16.0 of the role.
+
+I also use [guy geerlings docker role](https://github.com/geerlingguy/ansible-role-docker) to add basic docker support and [cockpit role](https://github.com/linux-system-roles/cockpit).
+
+Cockpit is a web console for administration of the host. I use this in "read-only mode" as all configuration is in code but it offers an excellent web based console access to KVM Virtual Machines which is incredibly handy.
+
+### Pfsense and Pfsense High Availability
+
+From my experience Pfsense works well as a host in KVM and it is possible to setup high availability using CARP. This opens up ability to run a secondary instance on my dev server and should anything happen to the "production" server or I need to rebuild it then internet access is still availible. With using PPOE to "dial up" there is a brief outage and failover happens but it is very brief (sub ~10 seconds).
+
+It is of vital importance however that the secondary node has the exact same order of interfaces presented to the system otherwise HA replication will fail. Using configuration management makes this consistency easy but wanted to point out this gotcha.
