@@ -56,35 +56,30 @@ Given the nature this is just for home internet access, local development and is
 
 ### Bare Metal Provisioning
 
-With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance, instead of say pxe booting with a dhcp server from my laptop, I decided on using 2 x USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity along with users setup and configured with SSHs keys.
-
-At this point configuration and management of the box is passed onto other automation tools.
+With running everything from one box at the very start there is no storage or network environment setup that could be used for something like pxe boot to provision the bare metal host. In this instance I decided on using 2 x USB memory sticks to provision an Ubuntu 22.04 LTS Bare Metal machine with cloud-init and autoinstall config. This enables me to get the Bare Metal machine "online" with a basic configuration for network connectivity along with users setup and configured with SSHs keys.
 
 The basics of the install are:
 
 - Create a customised live-server ISO with a modified grub.cfg to allow autoinstall
 
-```
-sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg
-```
-
-- Reduce the timeout since no one wants to wait 30 seconds for an autoinstall
-
-```
-sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg
-```
-
 - Rebuild the ISO with [livefs-editor](https://github.com/mwhudson/livefs-editor) to include the customised grub.cfg
 
 ```
-# copy command exactly as is, it appends -modded to the new filename export MODDED_ISO="${ORIG_ISO::-4}-modded.iso" livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg
+wget "https://releases.ubuntu.com/22.04/ubuntu-22.04.1-live-server-amd64.iso"
+export ORIG_ISO="ubuntu-22.04.1-live-server-amd64.iso"
+mount -o loop $ORIG_ISO mnt
+cp --no-preserve=all mnt/boot/grub/grub.cfg /tmp/grub.cfg
+sed -i 's/linux \/casper\/vmlinuz ---/linux \/casper\/vmlinuz autoinstall quiet ---/g' /tmp/grub.cfg
+sed -i 's/timeout=30/timeout=1/g' /tmp/grub.cfg
+# export MODDED_ISO="${ORIG_ISO::-4}-modded.iso"
+livefs-edit ../$ORIG_ISO ../$MODDED_ISO --cp /tmp/grub.cfg new/iso/boot/grub/grub.cfg
 ```
 
 - Copy to the ISO using dd, etcher or imaging software of choice to a USB stick.
 
 - Format a second USB stick as FAT32 and label the volume CIDATA. This is used for cloud-init config
 
-- Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement)
+- Create an empty file called meta-data (cloud init will not work if meta-data is missing. An empty file meets the requirement) on the cloud-init USB stick.
 
 ```
 touch meta-data
